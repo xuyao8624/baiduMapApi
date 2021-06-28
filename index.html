@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Baidu Map </title>
+  <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=vnPZpCjijk76ftMSMMPGW72US98jkyb5"></script>
+  <style type="text/css">
+    html {
+      height: 100%
+    }
+
+    body {
+      height: 100%;
+      margin: 0px;
+      padding: 0px;
+    }
+
+    ::-webkit-scrollbar-track-piece {
+      background: #d3dce6;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #99a9bf;
+      border-radius: 20px;
+    }
+
+    #container {
+      height: 50%
+    }
+
+    #results {
+      width: 100%;
+      height: 50%;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <div id="results"></div>
+  <script type="module">
+    import Map from "./mapTools.js"
+    let map = new Map("container") // 获取封装的地图对象
+
+    // 初始化地图
+    map.init({
+      center: [104.07, 30.66],
+      zoom: 15
+    })
+    // 点击地图获取点击处坐标,并且添加标记
+    map.rightClickMap((e) => {
+      let markerCoordinate = [e.point.lng, e.point.lat]
+      // 信息窗口配置项
+      let InfoWindowOption = {
+        width: 200,
+        height: 0,
+        title: "信息窗口"
+      }
+      // 创建信息窗口
+      let infoWindow = map.createInfoWindow("这是一个信息窗口", InfoWindowOption)
+
+      // 文本标注配置项
+      // let labelOptions = {}
+      //创建文本标注
+      // let label = map.createLabel("这是一个文本标注", labelOptions, markerCoordinate)
+
+      map.addMarker(markerCoordinate, function (event) {
+        console.log(event.point);
+        // 此处this指向的是当前marker
+        this.openInfoWindow(infoWindow) // 打开信息窗口
+        // this.setLabel(label) // 打开文本标注
+      }, function (event) {
+        console.log(event);
+        event.domEvent.preventDefault()
+        event.domEvent.stopPropagation()
+        let result = window.confirm('是否清除此标记')
+        result && map.removeMarker(this)
+      })
+    })
+    // 调用查询出行路线方法
+    map.queryTravel('都江堰快铁站', '四川工商职业技术学院', '公交')
+
+    // 调用本地搜索方法
+    map.localSearch("四川工业科技学院")
+  </script>
+</body>
+
+</html>

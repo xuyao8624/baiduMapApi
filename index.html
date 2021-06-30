@@ -5,46 +5,31 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Baidu Map </title>
-  <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=vnPZpCjijk76ftMSMMPGW72US98jkyb5"></script>
-  <style type="text/css">
-    html {
-      height: 100%
-    }
-
-    body {
-      height: 100%;
-      margin: 0px;
-      padding: 0px;
-    }
-
-    ::-webkit-scrollbar-track-piece {
-      background: #d3dce6;
-    }
-
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #99a9bf;
-      border-radius: 20px;
-    }
-
-    #container {
-      height: 50%
-    }
-
-    #results {
-      width: 100%;
-      height: 50%;
-      overflow-y: auto;
-    }
-  </style>
+  <script id="api-vision" type="text/javascript"
+    src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=vnPZpCjijk76ftMSMMPGW72US98jkyb5"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.3.1/jquery.js"></script>
+  <link rel="stylesheet" href="./index.css">
 </head>
 
 <body>
   <div id="container"></div>
+  <div id="search-box">
+    <div class="search">
+      <div class="search-item ">公交</div>
+      <div class="search-item ">驾车</div>
+      <div class="search-item active">步行</div>
+      <div class="search-item">骑行</div>
+    </div>
+    <div class="way-line"></div>
+    <div class="search-button"></div>
+    <div class="search-address-input">
+      <input id="address" type="text" placeholder="请输入查询的地点">
+    </div>
+    <div class="search-line-input">
+      <input id="start" type="text" placeholder="请输入起点">
+      <input id="end" type="text" placeholder="请输入终点">
+    </div>
+  </div>
   <div id="results"></div>
   <script type="module">
     import Map from "./mapTools.js"
@@ -86,10 +71,52 @@
       })
     })
     // 调用查询出行路线方法
-    map.queryTravel('都江堰快铁站', '四川工商职业技术学院', '公交')
+    let type;
+    let isWay = false;
+    $(".search-item").click(function () {
+      $(this).addClass("active")
+      $(this).siblings().removeClass("active")
+      type = $(this).text()
+    })
+    $(".way-line").click(function () {
+      $(this).toggleClass("cancel-button")
+      $('.search-address-input').toggle();
+      $('.search-line-input').toggle();
+      isWay = !isWay
+      if(isWay) {
+        type = "步行"
+        $(".search-item").eq(2).addClass("active")
+      }else {
+        type = undefined
+        $(".search-item").removeClass("active")
+      }
+    })
+
+    $(".search-button").click(function () {
+      if(type) {
+        let start = $("#start").val()
+        let end = $("#end").val()
+        if(type === "公交" || type === "驾车") {
+          map.localSearch([start, end], function(ret) {
+          let start = new BMapGL.Point(ret[0]._pois[0].point.lng,ret[0]._pois[0].point.lat); 
+          let end = new BMapGL.Point(ret[1]._pois[1].point.lng,ret[1]._pois[1].point.lat); 
+          map.queryTravel(start, end, type)
+        })
+        }else {
+          map.queryTravel(start, end, type)
+        }
+      }else {
+        let address = $("#address").val()
+        console.log(address);
+        map.localSearch(address)
+      }
+    })
+    /*  var start = new BMapGL.Point(116.310791, 40.003419);
+var end = new BMapGL.Point(116.486419, 39.877282); */
+    //map.queryTravel("成都东", "成都南", "公交")
 
     // 调用本地搜索方法
-    map.localSearch("四川工业科技学院")
+    //  map.localSearch("怡和新城")
   </script>
 </body>
 
